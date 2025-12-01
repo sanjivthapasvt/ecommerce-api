@@ -15,15 +15,18 @@ export class Note {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => User, (user) => user.notes, {onDelete: 'CASCADE'})
-  @JoinColumn({name: "userId"})
-  user!: User
+  @ManyToOne(() => User, (user) => user.notes, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user!: User;
+  
+  @Column()
+  userId!: number;
 
-  @Column("varchar")
+  @Column('varchar')
   @Index()
   title!: string;
 
-  @Column("text")
+  @Column('text')
   content!: string;
 
   @Column({ default: false })
@@ -36,4 +39,4 @@ export class Note {
 
   @UpdateDateColumn()
   updatedAt!: Date;
-} 
+}

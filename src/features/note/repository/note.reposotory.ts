@@ -2,12 +2,13 @@ import { Repository } from 'typeorm';
 import { injectable, singleton } from 'tsyringe';
 import { Note } from '../models/note.model';
 import AppDataSource from '../../../config/database';
-import { NoteFilter, TNote } from '../types';
+import { NoteFilter } from '../types';
 import { logger } from '../../../shared/utils/logger';
 import ServiceException from '../../../shared/utils/serverException';
 import { getDatabaseExceptionStatusCode } from '../../../shared/utils/helper';
 import { ServiceStatus } from '../../../shared/utils/constants';
 import { buildPaginatedResult } from '../../../shared/utils/pagination';
+import { UpdateNoteDTO } from '../dto';
 
 @injectable()
 @singleton()
@@ -44,7 +45,20 @@ export default class NoteRepository {
     }
   }
 
-  async createNote(data: Partial<TNote>): Promise<Note> {
+  async findPublicNoteById(id: number): Promise<Note | null> {
+    try {
+      return await this.repository.findOne({ where: { id: id, isPrivate: false } });
+    } catch (error: any) {
+      logger.error('Unable to find Note by id.', error);
+      throw new ServiceException(
+        getDatabaseExceptionStatusCode(error),
+        ServiceStatus.FAILURE,
+        'Unable to find Note by id.',
+      );
+    }
+  }
+
+  async createNote(data: Partial<Note>): Promise<Note> {
     try {
       const newNote = this.repository.create(data);
       return await this.repository.save(newNote);
@@ -58,7 +72,7 @@ export default class NoteRepository {
     }
   }
 
-  async updateNote(id: number, data: Partial<TNote>): Promise<Note | null> {
+  async updateNote(id: number, data: Partial<UpdateNoteDTO>): Promise<Note | null> {
     try {
       await this.repository.update(id, data);
       return this.findNoteById(id);
@@ -75,8 +89,9 @@ export default class NoteRepository {
   async deleteNote(id: number) {
     try {
       const note = await this.findNoteById(id);
+      const title = note?.title;
       await this.repository.delete(id);
-      return note?.title;
+      return title;
     } catch (error: any) {
       logger.error('Unable to delete note.', error);
       throw new ServiceException(
@@ -87,14 +102,17 @@ export default class NoteRepository {
     }
   }
 
-  async getNotes(filters: NoteFilter) {
+  async getNotes(filters: NoteFilter, userId: number) {
     try {
       const { page = 1, limit = 10, search } = filters;
       const skip = (page - 1) * limit;
 
       const queryBuilder = this.repository.createQueryBuilder('note');
 
-      queryBuilder.where('note.isPrivate = false');
+      queryBuilder
+        .select(['note.id', 'note.title', 'note.createdAt', 'note.updatedAt'])
+        .where('note.isPrivate = false')
+        .andWhere('note.user.id = :userId', { userId });
 
       if (search) {
         queryBuilder.andWhere('(note.title ILIKE :search)', { search: `%${search}%` });
@@ -117,14 +135,17 @@ export default class NoteRepository {
     }
   }
 
-  async getPrivateNotes(filters: NoteFilter) {
+  async getPrivateNotes(filters: NoteFilter, userId: number) {
     try {
       const { page = 1, limit = 10, search } = filters;
       const skip = (page - 1) * limit;
 
       const queryBuilder = this.repository.createQueryBuilder('note');
 
-      queryBuilder.where('note.isPrivate = true');
+      queryBuilder
+        .select(['note.id', 'note.title', 'note.createdAt', 'note.updatedAt'])
+        .where('note.isPrivate = true')
+        .andWhere('note.user.id = :userId', { userId });
 
       if (search) {
         queryBuilder.andWhere('(note.title ILIKE :search)', { search: `%${search}%` });
@@ -143,6 +164,18 @@ export default class NoteRepository {
         getDatabaseExceptionStatusCode(error),
         ServiceStatus.FAILURE,
         'Unable to get Notes.',
+      );
+    }
+  }
+  async findPrivateNoteById(id: number) {
+    try {
+      return await this.repository.findOne({ where: { id: id, isPrivate: true } });
+    } catch (error: any) {
+      logger.error('Unable to find Note by id.', error);
+      throw new ServiceException(
+        getDatabaseExceptionStatusCode(error),
+        ServiceStatus.FAILURE,
+        'Unable to find Note by id.',
       );
     }
   }
