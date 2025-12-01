@@ -25,19 +25,6 @@ if (dotenvResult.error) {
   process.exit(1);
 }
 
-// Type declarations for Express Request
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email: string;
-        role: string;
-      };
-    }
-  }
-}
-
 const getApp = async () => {
   const app = express();
 
