@@ -18,6 +18,7 @@ import { ServiceStatus } from '../../../shared/utils/constants';
 import ServiceException from '../../../shared/utils/serverException';
 import { EmailService } from '@/shared/services';
 import { TEmailSendType } from '@/shared/types';
+import bcrypt from 'bcryptjs';
 
 @injectable()
 @singleton()
@@ -152,8 +153,10 @@ export default class UserService {
         throw new ServiceException(StatusCodes.BAD_REQUEST, ServiceStatus.FAILURE, 'OTP expired');
       }
 
+      const hashedPassword = await bcrypt.hash(data.newPassword, 12);
+
       await this.userRepository.update(userId, {
-        password: data.newPassword,
+        password: hashedPassword,
         otp: undefined,
         otpExpiresAt: undefined,
       });
@@ -224,8 +227,8 @@ export default class UserService {
         );
       }
       await this.userRepository.verifyUser(user.id);
+      await this.userRepository.update(user.id, { otp: undefined, otpExpiresAt: undefined });
       return { message: 'Successfully verified otp' };
-
     } catch (error: any) {
       logger.error('Error in verifying otp:', error);
       throw error;
