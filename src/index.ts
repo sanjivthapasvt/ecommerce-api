@@ -14,9 +14,8 @@ import { validateEnvironmentVariables } from './config/environmentVariables';
 import { logger } from './shared/utils/logger';
 import { ServiceStatus } from './shared/utils/constants';
 
-
 // Load environment variables
-const envFile = ".env"
+const envFile = '.env';
 
 const dotenvResult = dotenv.config({ path: envFile, debug: process.env.DEBUG === 'true' });
 

@@ -6,14 +6,13 @@ import ServiceException from '../utils/serverException';
 import { TEmailSendType } from '../types';
 
 export default class EmailService {
-  static async send({ to, subject, text}: TEmailSendType) {
+  static async send({ to, subject, html}: TEmailSendType) {
     try {
       const result = await transporter.sendMail({
         from: process.env.SMTP2GO_FROM_EMAIL,
         to: to,
         subject: subject,
-        text: text,
-        html: `<p>${text}</p>`
+        html: html
       })
       logger.info(`Email sent to ${JSON.stringify(to)}:`, result);
     } catch (error) {

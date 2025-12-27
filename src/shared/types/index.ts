@@ -3,7 +3,7 @@ import { Request } from "express";
 export type TEmailSendType = {
   to: string | string[];
   subject: string;
-  text: string;
+  html: string;
 };
 
 export interface AuthenticatedRequest<

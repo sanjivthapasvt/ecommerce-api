@@ -2,8 +2,6 @@ import { DataSource } from "typeorm";
 import { join } from "path";
 import { config } from './environmentVariables';
 
-// console.log(config.database);
-
 const AppDataSource = new DataSource({
   type: "postgres",
   host: config.database.host,
@@ -12,8 +10,7 @@ const AppDataSource = new DataSource({
   password: config.database.password,
   database: config.database.database,
   synchronize: true,
-  // logging: config.nodeEnv === 'development',
-  logging: false,
+  logging: config.nodeEnv === 'development',
   entities: ["src/features/**/models/*.model.ts"],
   migrations: [join(__dirname, "../migrations/*.{ts,js}")],
   migrationsRun: false,

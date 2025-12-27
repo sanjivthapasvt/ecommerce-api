@@ -1,10 +1,8 @@
 import jwt from 'jsonwebtoken';
 
 export const generateToken = ({
-  first_name,
-  last_name,
-  email,
   id,
+  email,
 }: {
   first_name: string;
   last_name: string;
@@ -13,10 +11,8 @@ export const generateToken = ({
 }) => {
   return jwt.sign(
     {
-      first_name,
-      last_name,
-      email,
       id,
+      email,
     },
     process.env.JWT_SECRET_KEY || 'test',
     {

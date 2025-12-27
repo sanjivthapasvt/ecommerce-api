@@ -9,7 +9,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import bcrypt from 'bcryptjs';
-import { Note } from '@/features/note/models/note.model';
+import { RefreshToken } from './token.model';
+import { Review } from '@/features/product/models/review.model';
 
 @Entity('users')
 export class User {
@@ -45,9 +46,11 @@ export class User {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  //Relation with notes
-  @OneToMany(() => Note, (note) => note.user)
-  notes!: Note[];
+  @OneToMany(() => RefreshToken, (rt) => rt.user, { cascade: true })
+  refreshTokens!: RefreshToken[];
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review;
 
   @BeforeInsert()
   async hashPassword() {
@@ -57,4 +60,4 @@ export class User {
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
   }
-} 
+}

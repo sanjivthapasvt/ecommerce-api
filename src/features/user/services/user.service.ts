@@ -10,7 +10,7 @@ import {
   UpdateUserDto,
   UserFilter,
 } from '../types';
-import { generateOTP } from '../utils/otp';
+import { generateOTP, getOtpEmailHtml } from '../utils/otp';
 import { config } from '../../../config/environmentVariables';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '../../../shared/utils/logger';
@@ -42,10 +42,12 @@ export default class UserService {
       await this.userRepository.updateOtp(user.id, otp, otpExpiresAt);
 
       // Send OTP via email
+      const html = getOtpEmailHtml(data.firstName, data.lastName, otp, otpExpiresAt);
+
       const emailData: TEmailSendType = {
         to: data.email,
-        subject: 'Register otp for notes',
-        text: otp,
+        subject: 'Register otp for',
+        html: html,
       };
       EmailService.send(emailData);
 
@@ -116,10 +118,13 @@ export default class UserService {
       await this.userRepository.updateOtp(user.id, otp, otpExpiresAt);
 
       // Send OTP via email
+
+      const html = getOtpEmailHtml(user.firstName, user.lastName, otp, otpExpiresAt);
+
       const emailData: TEmailSendType = {
         to: data.email,
-        subject: 'Password reset otp for notes',
-        text: otp,
+        subject: 'Password reset otp',
+        html: html,
       };
       EmailService.send(emailData);
 
@@ -207,7 +212,7 @@ export default class UserService {
   }
 
   private generateToken(user: { id: number; email: string }) {
-    return jwt.sign({ id: user.id, email: user.email }, config.jwtSecret, { expiresIn: '1d' });
+    return jwt.sign({ id: user.id, email: user.email }, config.jwt.secret, { expiresIn: '10m' });
   }
 
   async verifyOtp(data: VerifyOtp) {

@@ -36,7 +36,7 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction) =
       );
     }
 
-    const decoded = jwt.verify(token, config.jwtSecret) as {
+    const decoded = jwt.verify(token, config.jwt.secret) as {
       id: number;
       email: string;
     };
