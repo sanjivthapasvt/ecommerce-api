@@ -28,7 +28,7 @@ export class Product {
   price!: number;
 
   @OneToMany(()=> Review, review => review.product)
-  reviews: Review
+  reviews: Review[]
 
   @CreateDateColumn()
   createdAt!: Date;
